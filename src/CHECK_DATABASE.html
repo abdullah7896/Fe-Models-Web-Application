@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Checker - Faizaan Events</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #000;
+            color: #fff;
+        }
+        .section {
+            background: #1a1a1a;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        h1 { color: #fbbf24; }
+        h2 { color: #fbbf24; margin-top: 0; }
+        button {
+            background: #fbbf24;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        button:hover { background: #f59e0b; }
+        button:disabled { background: #666; cursor: not-allowed; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #0a0a0a;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #fbbf24; }
+        .info { color: #3b82f6; }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Faizaan Events - Database & Edge Function Checker</h1>
+    <p>This tool will help diagnose why your applications aren't showing in the admin dashboard.</p>
+
+    <div class="section">
+        <h2>1. Check Edge Function Status</h2>
+        <button onclick="checkEdgeFunction()">Test Edge Function Health</button>
+        <div id="edgeFunctionResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>2. Check Database Connection</h2>
+        <button onclick="checkDatabase()">Check KV Store Table</button>
+        <div id="databaseResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>3. Try to Fetch Applications</h2>
+        <p>You need to be logged in as admin for this test.</p>
+        <button onclick="fetchApplications()">Fetch Applications (Admin Required)</button>
+        <div id="applicationsResult" class="result" style="display:none;"></div>
+    </div>
+
+    <div class="section">
+        <h2>4. Check All Possible Edge Function Names</h2>
+        <button onclick="checkAllFunctionNames()">Test Different Function URLs</button>
+        <div id="functionNamesResult" class="result" style="display:none;"></div>
+    </div>
+
+    <script type="module">
+        const PROJECT_ID = 'pggyqrqgyoehftdmnswa';
+        const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBnZ3lxcnFneW9laGZ0ZG1uc3dhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5NzczNzMsImV4cCI6MjA3MjU1MzM3M30.M-nQHeg3vVytbP7T6zEwv2vvUITPmyqv6W2AcmPP2lU';
+
+        window.checkEdgeFunction = async function() {
+            const resultDiv = document.getElementById('edgeFunctionResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="info">⏳ Testing edge function health endpoint...</span>';
+
+            const url = `https://${PROJECT_ID}.supabase.co/functions/v1/make-server-53cfc738/health`;
+            
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Edge function is WORKING!</span>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p class="success">The edge function is deployed and responding correctly.</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <span class="error">❌ Edge function returned error ${response.status}</span>
+                        <pre>${await response.text()}</pre>
+                        <p class="warning">The function exists but returned an error. Check the function logs in Supabase dashboard.</p>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <span class="error">❌ Could not reach edge function</span>
+                    <pre>${error.message}</pre>
+                    <p class="error">Possible issues:</p>
+                    <ul>
+                        <li>Edge function is not deployed</li>
+                        <li>Function name is incorrect (should be "server")</li>
+                        <li>CORS issue (check function logs)</li>
+                        <li>Network/firewall blocking the request</li>
+                    </ul>
+                    <p class="warning">Next step: Go to Supabase Dashboard → Edge Functions and check if "server" function exists and is active.</p>
+                `;
+            }
+        };
+
+        window.checkDatabase = async function() {
+            const resultDiv = document.getElementById('databaseResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="info">⏳ Checking database connection...</span>';
+
+            try {
+                const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+                const supabase = createClient(
+                    `https://${PROJECT_ID}.supabase.co`,
+                    ANON_KEY
+                );
+
+                // Try to query the KV store table
+                const { data, error, count } = await supabase
+                    .from('kv_store_53cfc738')
+                    .select('key', { count: 'exact', head: false })
+                    .like('key', 'application:%')
+                    .limit(5);
+
+                if (error) {
+                    if (error.code === '42P01') {
+                        resultDiv.innerHTML = `
+                            <span class="error">❌ Table 'kv_store_53cfc738' does not exist!</span>
+                            <pre>${error.message}</pre>
+                            <p class="warning">The KV store table hasn't been created yet. This is needed to store application data.</p>
+                            <p class="info">Solution: Run this SQL in Supabase Dashboard → SQL Editor:</p>
+                            <pre>CREATE TABLE kv_store_53cfc738 (
+  key TEXT NOT NULL PRIMARY KEY,
+  value JSONB NOT NULL
+);</pre>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <span class="error">❌ Database error</span>
+                            <pre>${JSON.stringify(error, null, 2)}</pre>
+                        `;
+                    }
+                } else {
+                    const applicationCount = count || 0;
+                    if (applicationCount > 0) {
+                        resultDiv.innerHTML = `
+                            <span class="success">✅ Database is working! Found ${applicationCount} applications</span>
+                            <p class="info">Sample keys:</p>
+                            <pre>${JSON.stringify(data.map(d => d.key), null, 2)}</pre>
+                            <p class="success">Your applications ARE in the database. The issue is with fetching them in the admin dashboard.</p>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <span class="warning">⚠️ Database table exists but is EMPTY</span>
+                            <p class="info">No applications have been submitted yet, OR they were submitted to a different table.</p>
+                            <p>Try submitting a test application through the "Apply Now" form to verify the submission process works.</p>
+                        `;
+                    }
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <span class="error">❌ Failed to check database</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        };
+
+        window.fetchApplications = async function() {
+            const resultDiv = document.getElementById('applicationsResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="info">⏳ Attempting to fetch applications...</span>';
+
+            try {
+                const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2');
+                const supabase = createClient(
+                    `https://${PROJECT_ID}.supabase.co`,
+                    ANON_KEY
+                );
+
+                // Get the current session
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    resultDiv.innerHTML = `
+                        <span class="warning">⚠️ Not logged in</span>
+                        <p>You need to log in as admin first to test this endpoint.</p>
+                        <p>Go to your admin dashboard and log in, then come back and try again.</p>
+                    `;
+                    return;
+                }
+
+                const url = `https://${PROJECT_ID}.supabase.co/functions/v1/make-server-53cfc738/admin/applications`;
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${session.access_token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <span class="success">✅ Successfully fetched applications!</span>
+                        <p class="info">Stats:</p>
+                        <pre>${JSON.stringify(data.stats, null, 2)}</pre>
+                        <p class="info">Total applications: ${data.applications?.length || 0}</p>
+                        ${data.applications?.length > 0 ? `<p class="info">First few applications:</p><pre>${JSON.stringify(data.applications.slice(0, 3), null, 2)}</pre>` : ''}
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `
+                        <span class="error">❌ Failed to fetch applications (${response.status})</span>
+                        <pre>${errorText}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <span class="error">❌ Error fetching applications</span>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        };
+
+        window.checkAllFunctionNames = async function() {
+            const resultDiv = document.getElementById('functionNamesResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<span class="info">⏳ Testing different function URLs...</span>';
+
+            const possibleNames = [
+                'server',
+                'make-server',
+                'make-server-53cfc738',
+                'applications'
+            ];
+
+            let results = '<p class="info">Testing these function names:</p><ul>';
+
+            for (const name of possibleNames) {
+                const url = `https://${PROJECT_ID}.supabase.co/functions/v1/${name}/make-server-53cfc738/health`;
+                try {
+                    const response = await fetch(url, {
+                        headers: { 'Authorization': `Bearer ${ANON_KEY}` }
+                    });
+                    
+                    if (response.ok) {
+                        results += `<li class="success">✅ <strong>${name}</strong> - WORKS!</li>`;
+                    } else {
+                        results += `<li class="error">❌ ${name} - Failed (${response.status})</li>`;
+                    }
+                } catch (error) {
+                    results += `<li class="error">❌ ${name} - Not found</li>`;
+                }
+            }
+
+            results += '</ul>';
+            resultDiv.innerHTML = results;
+        };
+    </script>
+</body>
+</html>
