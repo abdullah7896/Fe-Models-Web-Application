@@ -232,6 +232,25 @@ export function SimpleProfilePage({ favorites, toggleFavorite }: SimpleProfilePa
                 </CardContent>
               </Card>
 
+              {/* Casting Video */}
+              {talent?.signedCastingVideoUrl && (
+                <Card className="bg-gray-900 border-white/10">
+                  <CardContent className="p-4">
+                    <h3 className="text-lg text-white mb-3">Casting Video</h3>
+                    <div className="rounded-lg overflow-hidden border border-white/10">
+                      <video 
+                        src={talent.signedCastingVideoUrl} 
+                        controls 
+                        className="w-full h-auto aspect-video bg-black"
+                        preload="metadata"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Action Buttons */}
               <div className="space-y-3">
                 <Button

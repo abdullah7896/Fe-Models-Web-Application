@@ -2,12 +2,10 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Select } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Upload, Plus, X, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Upload, X, CheckCircle, ChevronLeft, ChevronRight, Video } from 'lucide-react';
 import { projectId, publicAnonKey, getBaseUrl } from '../utils/supabase/info';
-import { makeServerRequest } from '../utils/supabase/client';
 import { CATEGORY_CONFIG } from '../utils/categories';
 
 // Define the catalog structure using centralized config
@@ -45,6 +43,7 @@ export function ApplyNowPage() {
   });
 
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const [uploadedVideo, setUploadedVideo] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState('');
@@ -107,6 +106,22 @@ export function ApplyNowPage() {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Video size must be less than 10MB');
+        return;
+      }
+      setUploadedVideo(file);
+      setError('');
+    }
+  };
+
+  const removeVideo = () => {
+    setUploadedVideo(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -132,7 +147,7 @@ export function ApplyNowPage() {
     }
 
     // Demo mode check
-    if (projectId === 'placeholder-project-id') {
+    if ((projectId as string) === 'placeholder-project-id') {
       // Simulate successful submission in demo mode
       setTimeout(() => {
         setSubmitted(true);
@@ -153,6 +168,11 @@ export function ApplyNowPage() {
       uploadedImages.forEach((image) => {
         submitFormData.append('images', image);
       });
+
+      // Add casting video
+      if (uploadedVideo) {
+        submitFormData.append('castingVideo', uploadedVideo);
+      }
 
       const response = await fetch(`${getBaseUrl()}/functions/v1/make-server-53cfc738/applications/submit`, {
         method: 'POST',
@@ -207,6 +227,7 @@ export function ApplyNowPage() {
       instagramURL: '',
     });
     setUploadedImages([]);
+    setUploadedVideo(null);
   };
 
   if (submitted) {
@@ -379,7 +400,7 @@ export function ApplyNowPage() {
         </div>
 
         {/* Demo Mode Notice */}
-        {projectId === 'placeholder-project-id' && (
+        {(projectId as string) === 'placeholder-project-id' && (
           <Card className="bg-blue-900/20 border-blue-500/30 mb-6">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
@@ -704,6 +725,46 @@ export function ApplyNowPage() {
                   </label>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Upload Casting Video */}
+          <Card className="bg-white/10 border-white/20">
+            <CardHeader>
+              <CardTitle className="text-yellow-400">Upload Casting Video</CardTitle>
+              <p className="text-white/70 text-sm">
+                PLEASE UPLOAD A SHORT CASTING VIDEO.<br />
+                MAXIMUM FILE SIZE IS 10 MB (MP4, WEBM, QUICKTIME).
+              </p>
+            </CardHeader>
+            <CardContent>
+              {uploadedVideo ? (
+                <div className="relative inline-block">
+                  <div className="aspect-video w-64 bg-black/40 rounded border border-white/20 flex flex-col items-center justify-center p-4">
+                    <Video className="w-8 h-8 text-white/60 mb-2" />
+                    <span className="text-white/80 text-sm text-center truncate w-full">{uploadedVideo.name}</span>
+                    <span className="text-white/40 text-xs">{(uploadedVideo.size / (1024 * 1024)).toFixed(2)} MB</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removeVideo}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center focus:outline-none focus:ring-0 active:ring-0"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <label className="aspect-video w-full max-w-[16rem] bg-white/10 rounded border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:bg-white/20 transition-colors">
+                  <Upload className="w-8 h-8 text-white/60 mb-2" />
+                  <span className="text-white/60 text-sm">Add Video</span>
+                  <input
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={handleVideoUpload}
+                    className="hidden"
+                  />
+                </label>
+              )}
             </CardContent>
           </Card>
 

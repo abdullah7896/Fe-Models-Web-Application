@@ -20,7 +20,8 @@ import {
   User,
   Camera,
   MessageSquare,
-  Trash2
+  Trash2,
+  Video
 } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { supabase, makeServerRequest } from '../utils/supabase/client';
@@ -68,6 +69,8 @@ interface Application {
   adminNotes?: string;
   imageUrls?: string[];
   signedImageUrls?: string[];
+  castingVideoUrl?: string;
+  signedCastingVideoUrl?: string;
   catalog?: string;
   subcategory?: string;
 }
@@ -826,6 +829,26 @@ export function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         />
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Casting Video */}
+              {selectedApplication.signedCastingVideoUrl && (
+                <div>
+                  <h3 className="text-lg text-white mb-3 flex items-center">
+                    <Video className="w-5 h-5 mr-2" />
+                    Casting Video
+                  </h3>
+                  <div className="aspect-video overflow-hidden rounded-lg border border-white/10 relative max-w-xl mb-6">
+                    <video 
+                      src={selectedApplication.signedCastingVideoUrl} 
+                      controls 
+                      className="w-full h-full object-contain bg-black"
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
                 </div>
               )}

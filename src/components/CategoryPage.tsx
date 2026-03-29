@@ -131,6 +131,7 @@ export function CategoryPage({ favorites, toggleFavorite }: CategoryPageProps) {
       gender: model.gender,
       instagramURL: model.instagramURL,
       showreelURL: model.showreelURL,
+      signedCastingVideoUrl: model.signedCastingVideoUrl,
       description: model.description
     };
   };
@@ -138,7 +139,7 @@ export function CategoryPage({ favorites, toggleFavorite }: CategoryPageProps) {
   const filteredModels = approvedApplications.filter(model => {
     const talent = convertModelToTalent(model);
     const { category: normalizedModelCategory } = normalizeCategory(model.catalog || '', model.subcategory || '');
-    
+
     // Case-insensitive category comparison
     const matchesCategory = normalizedModelCategory.toLowerCase() === normalizedCategory.toLowerCase();
 

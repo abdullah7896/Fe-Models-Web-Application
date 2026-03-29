@@ -9,7 +9,7 @@ import bmwLogo from '../assets/91958f8b0edd170aa2f8d28975444e2107b6599d.png';
 import shpperLogo from '../assets/45c0829021bb3813d8c292d23b60e4f4091644ee.png';
 
 // Founder image
-import founderImage from '../assets/IMG-3520.jpg';
+import founderImage from '../assets/IMG_8409.JPG.jpeg';
 
 // Create array with all client logos
 const clientLogos = [

@@ -74,12 +74,12 @@ async function getSignedUrlCached(imagePath: string): Promise<string | null> {
   if (cached && cached.expiresAt > Date.now()) {
     return cached.url;
   }
-  
+
   try {
     const { data } = await supabase.storage
       .from('make-53cfc738-applications')
       .createSignedUrl(imagePath, 3600);
-    
+
     if (data?.signedUrl) {
       signedUrlCache.set(imagePath, {
         url: data.signedUrl,
@@ -97,7 +97,7 @@ async function getSignedUrlCached(imagePath: string): Promise<string | null> {
 async function batchSignUrls(imagePaths: string[]): Promise<Map<string, string>> {
   const results = new Map<string, string>();
   const uncachedPaths: string[] = [];
-  
+
   // Check cache first
   for (const path of imagePaths) {
     const cached = signedUrlCache.get(path);
@@ -107,7 +107,7 @@ async function batchSignUrls(imagePaths: string[]): Promise<Map<string, string>>
       uncachedPaths.push(path);
     }
   }
-  
+
   // Sign uncached URLs in parallel (batch of 20 to avoid rate limits)
   const BATCH_SIZE = 20;
   for (let i = 0; i < uncachedPaths.length; i += BATCH_SIZE) {
@@ -124,7 +124,7 @@ async function batchSignUrls(imagePaths: string[]): Promise<Map<string, string>>
         }
       })
     );
-    
+
     for (const { path, url } of signedUrls) {
       if (url) {
         signedUrlCache.set(path, {
@@ -135,7 +135,7 @@ async function batchSignUrls(imagePaths: string[]): Promise<Map<string, string>>
       }
     }
   }
-  
+
   return results;
 }
 
@@ -176,11 +176,16 @@ app.get('/make-server-53cfc738/models/fast', async (c) => {
       throw error;
     }
 
-    // Collect all image paths for batch signing
+    // Collect all image paths for batch signing (including videos)
     const allImagePaths: string[] = [];
     for (const talent of talents || []) {
-      if (talent.image_urls?.length > 0) {
-        allImagePaths.push(...talent.image_urls);
+      const imageUrls = talent.image_urls || talent.raw_data?.image_urls || talent.raw_data?.imageUrls || [];
+      if (imageUrls.length > 0) {
+        allImagePaths.push(...imageUrls);
+      }
+      const castingVideo = talent.casting_video_url || talent.raw_data?.casting_video_url || talent.raw_data?.castingVideoUrl;
+      if (castingVideo) {
+        allImagePaths.push(castingVideo);
       }
     }
 
@@ -188,25 +193,32 @@ app.get('/make-server-53cfc738/models/fast', async (c) => {
     const signedUrlMap = await batchSignUrls(allImagePaths);
 
     // Transform to match frontend expectations
-    const models = (talents || []).map(t => ({
-      id: t.id,
-      name: `${t.first_name} ${t.last_name}`,
-      firstName: t.first_name,
-      lastName: t.last_name,
-      email: t.email,
-      gender: t.gender,
-      catalog: t.catalog,
-      subcategory: t.subcategory,
-      nationality: t.nationality,
-      location: t.location || t.country_of_residence,
-      age: t.date_of_birth ? new Date().getFullYear() - new Date(t.date_of_birth).getFullYear() : null,
-      imageUrls: t.image_urls || [],
-      signedImageUrls: (t.image_urls || []).map(url => signedUrlMap.get(url)).filter(Boolean),
-      instagramURL: t.instagram_url,
-      showreelURL: t.showreel_url,
-      status: t.status,
-      approvedAt: t.approved_at
-    }));
+    const models = (talents || []).map(t => {
+      const imageUrls = t.image_urls || t.raw_data?.image_urls || t.raw_data?.imageUrls || [];
+      const castingVideo = t.casting_video_url || t.raw_data?.casting_video_url || t.raw_data?.castingVideoUrl;
+
+      return {
+        id: t.id,
+        name: `${t.first_name || t.raw_data?.firstName} ${t.last_name || t.raw_data?.lastName}`,
+        firstName: t.first_name || t.raw_data?.firstName,
+        lastName: t.last_name || t.raw_data?.lastName,
+        email: t.email || t.raw_data?.email,
+        gender: t.gender || t.raw_data?.gender,
+        catalog: t.catalog || t.raw_data?.catalog,
+        subcategory: t.subcategory || t.raw_data?.subcategory,
+        nationality: t.nationality || t.raw_data?.nationality,
+        location: t.location || t.country_of_residence || t.raw_data?.countryOfResidence,
+        age: t.date_of_birth ? new Date().getFullYear() - new Date(t.date_of_birth).getFullYear() : null,
+        imageUrls: imageUrls,
+        signedImageUrls: imageUrls.map((url: string) => signedUrlMap.get(url)).filter(Boolean),
+        castingVideoUrl: castingVideo,
+        signedCastingVideoUrl: castingVideo ? signedUrlMap.get(castingVideo) : null,
+        instagramURL: t.instagram_url || t.raw_data?.instagramURL,
+        showreelURL: t.showreel_url || t.raw_data?.showreelURL,
+        status: t.status,
+        approvedAt: t.approved_at || t.raw_data?.approvedAt
+      };
+    });
 
     const totalTime = Date.now() - startTime;
     console.log(`FAST SQL: Returned ${models.length} talents in ${totalTime}ms`);
@@ -275,6 +287,25 @@ app.post('/make-server-53cfc738/applications/submit', async (c) => {
       return c.json({ success: false, message: 'Catalog and subcategory must be selected' }, 400);
     }
 
+    // Handle video upload
+    let castingVideoUrl = null;
+    const castingVideo = formData.get('castingVideo') as File | null;
+    if (castingVideo && castingVideo.size > 0) {
+      const fileExt = castingVideo.name.split('.').pop() || 'mp4';
+      const fileName = `${applicationData.id}/video_${crypto.randomUUID()}.${fileExt}`;
+      const { error } = await supabase.storage
+        .from('make-53cfc738-applications')
+        .upload(fileName, castingVideo, {
+          contentType: castingVideo.type || 'video/mp4',
+          upsert: false
+        });
+      if (error) {
+        console.error('Video upload error:', error);
+      } else {
+        castingVideoUrl = fileName;
+      }
+    }
+
     // Handle image uploads
     const imageUrls: string[] = [];
     const images = formData.getAll('images') as File[];
@@ -318,6 +349,7 @@ app.post('/make-server-53cfc738/applications/submit', async (c) => {
       mobile_uae: applicationData.mobileUAE,
       instagram_url: applicationData.instagramURL,
       showreel_url: applicationData.showreelURL,
+      casting_video_url: castingVideoUrl,
       image_urls: imageUrls,
       raw_data: applicationData // Store full object as JSON backup
     });
@@ -599,7 +631,7 @@ app.post('/make-server-53cfc738/admin/sync-approved-to-talents', async (c) => {
       .from('applications')
       .select('*')
       .eq('status', 'approved');
-    
+
     if (fetchError) {
       console.error('Fetch error:', fetchError);
       return c.json({ success: false, message: 'Failed to fetch approved applications' }, 500);
@@ -617,12 +649,12 @@ app.post('/make-server-53cfc738/admin/sync-approved-to-talents', async (c) => {
         // Get catalog and subcategory with fallbacks
         let catalog = app.catalog || app.raw_data?.catalog;
         let subcategory = app.subcategory || app.raw_data?.subcategory;
-        
+
         // If still missing, try to infer from role or other fields
         if (!catalog || !subcategory) {
           const role = app.raw_data?.role || app.role;
           const gender = app.gender || app.raw_data?.gender;
-          
+
           // Default to Models category if missing
           if (!catalog) {
             if (role === 'Men' || role === 'Women' || role === 'Model' || role === 'Models') {
@@ -631,7 +663,7 @@ app.post('/make-server-53cfc738/admin/sync-approved-to-talents', async (c) => {
               catalog = 'Models'; // Default fallback
             }
           }
-          
+
           if (!subcategory) {
             if (role === 'Men' || role === 'Women') {
               subcategory = role;
@@ -644,10 +676,10 @@ app.post('/make-server-53cfc738/admin/sync-approved-to-talents', async (c) => {
             }
           }
         }
-        
+
         // Normalize catalog data using the existing function
         const normalized = normalizeCatalogData({ catalog, subcategory, gender: app.gender || app.raw_data?.gender });
-        
+
         const talentData = {
           id: app.id,
           first_name: app.first_name || app.raw_data?.firstName || 'Unknown',
@@ -664,16 +696,20 @@ app.post('/make-server-53cfc738/admin/sync-approved-to-talents', async (c) => {
           mobile_uae: app.mobile_uae || app.raw_data?.mobileUAE,
           instagram_url: app.instagram_url || app.raw_data?.instagramURL,
           showreel_url: app.showreel_url || app.raw_data?.showreelURL,
+          casting_video_url: app.casting_video_url || app.raw_data?.castingVideoUrl,
           image_urls: app.image_urls || app.raw_data?.imageUrls || [],
           status: 'approved',
           approved_at: app.approved_at || new Date().toISOString(),
-          raw_data: app.raw_data || app
+          raw_data: {
+            ...(app.raw_data || app),
+            casting_video_url: app.casting_video_url || app.raw_data?.castingVideoUrl
+          }
         };
 
         const { error: upsertError } = await supabase
           .from('talents')
           .upsert(talentData);
-        
+
         if (upsertError) {
           console.error(`Failed to sync ${app.id} (${app.first_name || app.raw_data?.firstName}):`, upsertError.message);
           errorCount++;
@@ -750,6 +786,7 @@ app.post('/make-server-53cfc738/admin/migrate-kv-to-sql', async (c) => {
           email: app.email,
           // FIXED: Include image_urls for proper display
           image_urls: app.imageUrls || [],
+          casting_video_url: app.castingVideoUrl,
           instagram_url: app.instagramURL,
           showreel_url: app.showreelURL,
           whatsapp_number: app.whatsAppNumber,
@@ -817,6 +854,10 @@ app.get('/make-server-53cfc738/admin/applications', async (c) => {
         if (imageUrls.length > 0) {
           allImagePaths.push(...imageUrls);
         }
+        const castingVideo = app.casting_video_url || app.raw_data?.castingVideoUrl;
+        if (castingVideo) {
+          allImagePaths.push(castingVideo);
+        }
       }
 
       console.log(`Signing ${allImagePaths.length} images in parallel...`);
@@ -827,14 +868,17 @@ app.get('/make-server-53cfc738/admin/applications', async (c) => {
       // Transform back to match frontend expectations
       const mappedApps = (applications || []).map(app => {
         const imageUrls = app.image_urls || app.raw_data?.imageUrls || [];
-        const signedImageUrls = imageUrls.map(url => signedUrlMap.get(url)).filter(Boolean);
-        
+        const signedImageUrls = imageUrls.map((url: string) => signedUrlMap.get(url)).filter(Boolean);
+        const castingVideo = app.casting_video_url || app.raw_data?.castingVideoUrl;
+
         return {
           ...app.raw_data, // Spread original data first
           ...app,          // Override with optimized columns
           // Map SQL column names back to frontend expected names
           imageUrls: imageUrls,
           signedImageUrls: signedImageUrls,
+          castingVideoUrl: castingVideo,
+          signedCastingVideoUrl: castingVideo ? signedUrlMap.get(castingVideo) : null,
           firstName: app.first_name || app.raw_data?.firstName,
           lastName: app.last_name || app.raw_data?.lastName,
           submissionDate: app.created_at,
@@ -979,14 +1023,14 @@ app.post('/make-server-53cfc738/admin/applications/:id/approve', async (c) => {
     // SQL PATH: Update in SQL tables
     if (source === 'sql') {
       console.log(`Approving application ${applicationId} in SQL...`);
-      
+
       // Get the application from SQL
       const { data: app, error: fetchError } = await supabase
         .from('applications')
         .select('*')
         .eq('id', applicationId)
         .single();
-      
+
       if (fetchError || !app) {
         return c.json({ success: false, message: 'Application not found in SQL' }, 404);
       }
@@ -1000,7 +1044,7 @@ app.post('/make-server-53cfc738/admin/applications/:id/approve', async (c) => {
           admin_notes: notes || ''
         })
         .eq('id', applicationId);
-      
+
       if (updateError) {
         console.error('SQL update error:', updateError);
         return c.json({ success: false, message: 'Failed to update application' }, 500);
@@ -1022,16 +1066,20 @@ app.post('/make-server-53cfc738/admin/applications/:id/approve', async (c) => {
         mobile_uae: app.mobile_uae || app.raw_data?.mobileUAE,
         instagram_url: app.instagram_url || app.raw_data?.instagramURL,
         showreel_url: app.showreel_url || app.raw_data?.showreelURL,
+        casting_video_url: app.casting_video_url || app.raw_data?.castingVideoUrl,
         image_urls: app.image_urls || app.raw_data?.imageUrls || [],
         status: 'approved',
         approved_at: new Date().toISOString(),
-        raw_data: app.raw_data || app
+        raw_data: {
+          ...(app.raw_data || app),
+          casting_video_url: app.casting_video_url || app.raw_data?.castingVideoUrl
+        }
       };
 
       const { error: talentError } = await supabase
         .from('talents')
         .upsert(talentData);
-      
+
       if (talentError) {
         console.error('Talent insert error:', talentError);
         // Don't fail if talent insert fails, application is still approved
@@ -1132,7 +1180,7 @@ app.post('/make-server-53cfc738/admin/applications/:id/reject', async (c) => {
     // SQL PATH: Update in SQL tables
     if (source === 'sql') {
       console.log(`Rejecting application ${applicationId} in SQL...`);
-      
+
       const { error: updateError } = await supabase
         .from('applications')
         .update({
@@ -1141,7 +1189,7 @@ app.post('/make-server-53cfc738/admin/applications/:id/reject', async (c) => {
           admin_notes: notes || ''
         })
         .eq('id', applicationId);
-      
+
       if (updateError) {
         console.error('SQL update error:', updateError);
         return c.json({ success: false, message: 'Failed to update application' }, 500);
@@ -1212,14 +1260,14 @@ app.delete('/make-server-53cfc738/admin/applications/:id', async (c) => {
     // SQL PATH: Delete from SQL tables
     if (source === 'sql') {
       console.log(`Deleting application ${applicationId} from SQL...`);
-      
+
       // Get the application first to get image URLs
       const { data: app, error: fetchError } = await supabase
         .from('applications')
         .select('*')
         .eq('id', applicationId)
         .single();
-      
+
       if (fetchError || !app) {
         return c.json({ success: false, message: 'Application not found in SQL' }, 404);
       }
@@ -1248,7 +1296,7 @@ app.delete('/make-server-53cfc738/admin/applications/:id', async (c) => {
         .from('applications')
         .delete()
         .eq('id', applicationId);
-      
+
       if (deleteError) {
         console.error('SQL delete error:', deleteError);
         return c.json({ success: false, message: 'Failed to delete application' }, 500);
@@ -1408,7 +1456,7 @@ app.get('/make-server-53cfc738/models/approved/:category/:subcategory', async (c
 
     // Get ALL approved models and filter
     const allApprovedModelKeys = await kv.getByPrefix('approved_model:');
-    
+
     // Filter and normalize in one pass
     const models = allApprovedModelKeys
       .map(modelKey => modelKey.value)
@@ -1462,7 +1510,7 @@ app.get('/make-server-53cfc738/models/approved/:category', async (c) => {
 
     // Get all approved models and filter by category
     const allApprovedModelKeys = await kv.getByPrefix('approved_model:');
-    
+
     const models = allApprovedModelKeys
       .map(modelKey => modelKey.value)
       .filter(Boolean)
@@ -1484,7 +1532,7 @@ app.get('/make-server-53cfc738/models/approved/:category', async (c) => {
     const modelsBySubcategory: Record<string, any[]> = {};
     for (const model of models) {
       model.signedImageUrls = (model.imageUrls || []).map(url => signedUrlMap.get(url)).filter(Boolean);
-      
+
       if (!modelsBySubcategory[model.subcategory]) {
         modelsBySubcategory[model.subcategory] = [];
       }
@@ -1524,7 +1572,7 @@ app.post('/make-server-53cfc738/models/by-ids', async (c) => {
     // Fetch all models in parallel using mget
     const modelKeys = ids.map(id => `approved_model:${id}`);
     const rawModels = await kv.mget(modelKeys);
-    
+
     const models = rawModels.filter(Boolean).map(model => normalizeCatalogData(model));
 
     // Collect all image paths

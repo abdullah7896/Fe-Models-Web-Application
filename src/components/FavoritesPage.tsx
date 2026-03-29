@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { Heart, MapPin, Star, Calendar, Ruler, MessageCircle } from 'lucide-react';
+import { Heart, MapPin, Star, MessageCircle } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { publicAnonKey, getBaseUrl } from '../utils/supabase/info';
 import {
@@ -41,7 +41,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
 
   const fetchAllApprovedApplications = async () => {
     setLoading(true);
-    
+
     try {
       // Fetch all approved models from public endpoint
       // Use fast SQL endpoint for better performance - request limit=500 to get all talents
@@ -60,7 +60,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
 
       const data = await response.json();
       console.log('Fetched applications for favorites:', data);
-      
+
       if (data.success && data.models) {
         // Data is already approved models from the backend
         setAllApprovedApplications(data.models);
@@ -108,7 +108,8 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
       phone: '',
       gender: model.gender,
       instagramURL: model.instagramURL,
-      showreelURL: model.showreelURL
+      showreelURL: model.showreelURL,
+      signedCastingVideoUrl: model.signedCastingVideoUrl
     };
   };
 
@@ -121,15 +122,15 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
 
     // Convert all approved models to talent format
     const allTalents = allApprovedApplications.map(convertModelToTalent);
-    
+
     // Filter to only include favorited talents
     const filtered = allTalents.filter(talent => favorites.includes(talent.id));
-    
+
     console.log('All talents:', allTalents.length);
     console.log('Filtered favorite talents:', filtered.length);
     console.log('Favorite IDs:', favorites);
     console.log('Sample favorite talent:', filtered[0]);
-    
+
     setFavoriteTalents(filtered);
     setCurrentPage(1);
   };
@@ -137,7 +138,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
   const generateWhatsAppMessage = () => {
     if (favoriteTalents.length === 0) return '';
 
-    const talentList = favoriteTalents.map(talent => 
+    const talentList = favoriteTalents.map(talent =>
       `• ${talent.name} (${talent.catalog} - ${talent.subcategory})`
     ).join('\n');
 
@@ -166,12 +167,13 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
   const renderPaginationItems = () => {
     const items = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         items.push(
           <PaginationItem key={i}>
             <PaginationLink
+              size="icon"
               onClick={(e) => { e.preventDefault(); handlePageChange(i); }}
               isActive={currentPage === i}
               className={`cursor-pointer ${currentPage === i ? 'bg-yellow-500 text-black hover:bg-yellow-600' : 'text-white hover:bg-white/10'}`}
@@ -185,6 +187,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
       items.push(
         <PaginationItem key={1}>
           <PaginationLink
+            size="icon"
             onClick={(e) => { e.preventDefault(); handlePageChange(1); }}
             isActive={currentPage === 1}
             className={`cursor-pointer ${currentPage === 1 ? 'bg-yellow-500 text-black hover:bg-yellow-600' : 'text-white hover:bg-white/10'}`}
@@ -205,6 +208,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
         items.push(
           <PaginationItem key={i}>
             <PaginationLink
+              size="icon"
               onClick={(e) => { e.preventDefault(); handlePageChange(i); }}
               isActive={currentPage === i}
               className={`cursor-pointer ${currentPage === i ? 'bg-yellow-500 text-black hover:bg-yellow-600' : 'text-white hover:bg-white/10'}`}
@@ -222,6 +226,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
       items.push(
         <PaginationItem key={totalPages}>
           <PaginationLink
+            size="icon"
             onClick={(e) => { e.preventDefault(); handlePageChange(totalPages); }}
             isActive={currentPage === totalPages}
             className={`cursor-pointer ${currentPage === totalPages ? 'bg-yellow-500 text-black hover:bg-yellow-600' : 'text-white hover:bg-white/10'}`}
@@ -264,7 +269,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
               </p>
             </div>
             {favoriteTalents.length > 0 && (
-              <Button 
+              <Button
                 onClick={handleBookNow}
                 className="bg-yellow-500 hover:bg-yellow-600 text-black flex items-center gap-2 focus:outline-none focus:ring-0 active:ring-0 w-full sm:w-auto text-sm"
                 size="sm"
@@ -293,85 +298,85 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
             <>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {paginatedTalents.map((talent) => (
-                <Card key={talent.id} className="bg-gray-900 border-white/10 overflow-hidden hover:border-yellow-500/50 transition-colors">
-                  <div className="relative aspect-[3/4]">
-                    <ImageWithFallback
-                      src={talent.image}
-                      alt={talent.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={() => toggleFavorite(talent.id)}
-                      className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors focus:outline-none focus:ring-0 active:ring-0"
-                    >
-                      <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                    </button>
-                  </div>
-                  
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <h3 className="text-lg text-white">{talent.firstName || talent.name}</h3>
-                      <div className="flex items-center">
-                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                        <span className="text-sm text-white/60 ml-1">{talent.rating}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center text-sm text-white/60 mb-2">
-                      <MapPin className="w-4 h-4 mr-1" />
-                      {talent.location}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Category:</span>
-                        <span className="text-white">{talent.catalog}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Age:</span>
-                        <span className="text-white">{talent.age}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Nationality:</span>
-                        <span className="text-white">{talent.nationality}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-white/60">Experience:</span>
-                        <span className="text-white">{talent.experience}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm text-white/60 mb-2">Specializations:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {talent.specializations.slice(0, 3).map((spec: string, index: number) => (
-                          <Badge key={index} className="text-xs bg-black border border-white/20 text-white">
-                            {spec}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4 flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black focus:outline-none focus:ring-0 active:ring-0"
-                        onClick={() => onViewProfile(talent)}
-                      >
-                        View Profile
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="px-3 border-white/20 text-white hover:bg-white/10 focus:outline-none focus:ring-0 active:ring-0"
+                  <Card key={talent.id} className="bg-gray-900 border-white/10 overflow-hidden hover:border-yellow-500/50 transition-colors">
+                    <div className="relative aspect-[3/4]">
+                      <ImageWithFallback
+                        src={talent.image}
+                        alt={talent.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <button
                         onClick={() => toggleFavorite(talent.id)}
+                        className="absolute top-3 right-3 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-colors focus:outline-none focus:ring-0 active:ring-0"
                       >
                         <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                      </Button>
+                      </button>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <h3 className="text-lg text-white">{talent.firstName || talent.name}</h3>
+                        <div className="flex items-center">
+                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                          <span className="text-sm text-white/60 ml-1">{talent.rating}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center text-sm text-white/60 mb-2">
+                        <MapPin className="w-4 h-4 mr-1" />
+                        {talent.location}
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white/60">Category:</span>
+                          <span className="text-white">{talent.catalog}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white/60">Age:</span>
+                          <span className="text-white">{talent.age}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white/60">Nationality:</span>
+                          <span className="text-white">{talent.nationality}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-white/60">Experience:</span>
+                          <span className="text-white">{talent.experience}</span>
+                        </div>
+                      </div>
+
+                      <div className="mt-3">
+                        <p className="text-sm text-white/60 mb-2">Specializations:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {talent.specializations.slice(0, 3).map((spec: string, index: number) => (
+                            <Badge key={index} className="text-xs bg-black border border-white/20 text-white">
+                              {spec}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black focus:outline-none focus:ring-0 active:ring-0"
+                          onClick={() => onViewProfile(talent)}
+                        >
+                          View Profile
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="px-3 border-white/20 text-white hover:bg-white/10 focus:outline-none focus:ring-0 active:ring-0"
+                          onClick={() => toggleFavorite(talent.id)}
+                        >
+                          <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
               {/* Pagination */}
@@ -381,6 +386,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
                     <PaginationContent className="flex-wrap gap-1 sm:gap-2">
                       <PaginationItem>
                         <PaginationPrevious
+                          size="default"
                           onClick={(e) => {
                             e.preventDefault();
                             if (currentPage > 1) handlePageChange(currentPage - 1);
@@ -388,11 +394,12 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
                           className={`cursor-pointer text-white hover:bg-white/10 ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                         />
                       </PaginationItem>
-                      
+
                       {renderPaginationItems()}
-                      
+
                       <PaginationItem>
                         <PaginationNext
+                          size="default"
                           onClick={(e) => {
                             e.preventDefault();
                             if (currentPage < totalPages) handlePageChange(currentPage + 1);
@@ -407,7 +414,7 @@ export function FavoritesPage({ favorites, toggleFavorite, onViewProfile }: Favo
 
               {/* Book All Button */}
               <div className="mt-8 sm:mt-12 text-center">
-                <Button 
+                <Button
                   onClick={handleBookNow}
                   size="lg"
                   className="bg-yellow-500 hover:bg-yellow-600 text-black px-6 sm:px-8 py-2.5 sm:py-3 text-base sm:text-lg flex items-center gap-2 sm:gap-3 mx-auto focus:outline-none focus:ring-0 active:ring-0"

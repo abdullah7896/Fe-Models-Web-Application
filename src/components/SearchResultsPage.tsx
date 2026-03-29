@@ -107,6 +107,7 @@ export function SearchResultsPage({ favorites, toggleFavorite }: SearchResultsPa
       gender: model.gender,
       instagram: model.instagramURL,
       showreel: model.showreelURL,
+      signedCastingVideoUrl: model.signedCastingVideoUrl,
       description: model.description
     };
   };
