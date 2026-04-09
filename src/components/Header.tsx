@@ -25,6 +25,8 @@ export function Header({ favoritesCount = 0 }: HeaderProps) {
           <Link to="/" className="text-sm font-medium hover:text-yellow-400 transition-colors">HOME</Link>
           <Link to="/about" className="text-sm font-medium hover:text-yellow-400 transition-colors">ABOUT US</Link>
           <Link to="/apply" className="text-sm font-medium hover:text-yellow-400 transition-colors">APPLY NOW</Link>
+          <Link to="/contact" className="text-sm font-medium hover:text-yellow-400 transition-colors">CONTACT</Link>
+          <Link to="/faq" className="text-sm font-medium hover:text-yellow-400 transition-colors">FAQ</Link>
 
           <Link to="/favorites" className="flex items-center space-x-2 hover:text-yellow-400 transition-colors cursor-pointer">
             <div className="relative">
@@ -64,6 +66,8 @@ export function Header({ favoritesCount = 0 }: HeaderProps) {
                 <Link to="/" className="text-white hover:text-yellow-400 py-2 border-b border-white/10" onClick={() => setMobileMenuOpen(false)}>HOME</Link>
                 <Link to="/about" className="text-white hover:text-yellow-400 py-2 border-b border-white/10" onClick={() => setMobileMenuOpen(false)}>ABOUT US</Link>
                 <Link to="/apply" className="text-white hover:text-yellow-400 py-2 border-b border-white/10" onClick={() => setMobileMenuOpen(false)}>APPLY NOW</Link>
+                <Link to="/contact" className="text-white hover:text-yellow-400 py-2 border-b border-white/10" onClick={() => setMobileMenuOpen(false)}>CONTACT</Link>
+                <Link to="/faq" className="text-white hover:text-yellow-400 py-2 border-b border-white/10" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
                 <Link to="/favorites" className="text-white hover:text-yellow-400 py-2 border-b border-white/10 flex justify-between items-center" onClick={() => setMobileMenuOpen(false)}>
                   <span>FAVOURITES</span>
                   {favoritesCount > 0 && <span className="bg-yellow-500 text-black text-xs px-2 rounded-full">{favoritesCount}</span>}

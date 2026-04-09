@@ -17,26 +17,24 @@ export function HomePage() {
   return (
     <div className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 min-h-[calc(100vh-200px)]">
       <div className="text-center text-white max-w-4xl w-full">
-        {/* Main Heading */}
+        {/* Main Heading - SEO H1 */}
         <motion.h1
-          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl mb-4 sm:mb-6 leading-tight drop-shadow-2xl"
+          className="text-5xl sm:text-5xl md:text-5xl lg:text-5xl xl:text-5xl mb-4 sm:mb-6 leading-tight drop-shadow-2xl font-bold"
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
         >
-          PREMIUM TALENT<br />
-          AGENCY
+          Top Modeling Agency in Dubai for Elite Talent
         </motion.h1>
 
-        {/* Subtitle */}
+        {/* Subtitle - SEO Paragraph */}
         <motion.p
-          className="text-sm sm:text-base md:text-lg mb-6 sm:mb-8 text-white/90 max-w-2xl mx-auto drop-shadow-lg px-4"
+          className="text-xs sm:text-sm md:text-base text-white/80 max-w-2xl mx-auto drop-shadow-lg px-4 leading-relaxed mb-8 sm:mb-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.3 }}
         >
-          <span className="block sm:inline">Discover exceptional talent across models, actors, social media influencers,</span>
-          <span className="block sm:inline sm:ml-1">production services, and creative artists</span>
+          As a trusted model agency in UAE, we represent exceptional talent across fashion, commercial, and digital industries. Recognised among the top modeling companies in Dubai, our agency connects professional models, actors, social media influencers, and creative artists with premium brands and global opportunities. With a strong presence as a leading modeling agency in Dubai, we deliver high-quality production support and talent solutions tailored to modern industry demands.
         </motion.p>
 
         {/* Action Buttons */}

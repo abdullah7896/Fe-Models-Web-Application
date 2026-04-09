@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Award, Users, Star, Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Linkedin, Twitter } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Award, Users, Star, Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Music2 } from 'lucide-react';
 
 import { motion } from 'motion/react';
 
@@ -93,40 +93,42 @@ export function AboutUs() {
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
 
-          {/* Hero Section with Title */}
+          {/* Hero Section with SEO Title */}
           <motion.div
             className="text-center mb-16 sm:mb-20"
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
           >
-            <motion.div
-              className="inline-block mb-4"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <div className="flex items-center gap-3 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-6 py-3 backdrop-blur-sm">
-                <Sparkles className="w-5 h-5 text-yellow-500" />
-                <span className="text-yellow-500 text-sm tracking-widest uppercase">Discover Our Story</span>
-              </div>
-            </motion.div>
             <motion.h1
-              className="text-yellow-500 mb-4"
+              className="text-4xl md:text-5xl lg:text-6xl mb-4 font-bold"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              About Faizaan Events
+              About FEModels - Leading Modeling Companies in Dubai Since 2009
             </motion.h1>
-            <motion.p
-              className="text-white/60 text-lg sm:text-xl max-w-3xl mx-auto leading-relaxed"
+            <motion.h2
+              className="text-2xl md:text-3xl text-yellow-500 mb-6 font-semibold"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.5 }}
             >
-              Where creativity meets excellence in event planning and talent management
-            </motion.p>
+              Redefining Excellence in UAE Model Representation
+            </motion.h2>
+            <motion.div
+              className="space-y-4 text-white/70 text-lg max-w-3xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <p>
+                FEModels emerged in 2009 with a clear vision: to establish Dubai as a global hub for modeling excellence while providing ethical, professional representation that prioritizes both client satisfaction and model welfare. Over fifteen years, we've evolved from a boutique model agency in Dubai to one of the region's most respected modeling companies in Dubai, representing diverse talent and serving multinational brands across the Middle East.
+              </p>
+              <p>
+                Our journey began with a founding team of fashion industry veterans who recognized the UAE's potential as an international fashion and commercial center. Today, FEModels stands as a testament to that vision, having facilitated thousands of successful bookings, launched numerous modeling careers, and contributed to iconic campaigns that have shaped the region's creative landscape.
+              </p>
+            </motion.div>
           </motion.div>
 
           {/* Statistics Section */}
@@ -480,26 +482,122 @@ export function AboutUs() {
           >
             <div className="relative bg-gradient-to-br from-yellow-500/10 via-yellow-500/5 to-transparent border border-yellow-500/30 rounded-3xl p-8 sm:p-12 lg:p-16 overflow-hidden">
               <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/5 rounded-full blur-3xl"></div>
-              <div className="relative text-center max-w-4xl mx-auto">
-                <div className="inline-block mb-6">
-                  <div className="flex items-center gap-3 bg-yellow-500/20 border border-yellow-500/40 rounded-full px-6 py-3 backdrop-blur-sm">
-                    <Sparkles className="w-5 h-5 text-yellow-500" />
-                    <span className="text-yellow-500 text-sm tracking-widest uppercase">Our Mission</span>
+              <div className="relative max-w-4xl mx-auto space-y-12">
+
+                {/* Our Mission & Values */}
+                <div>
+                  <h2 className="text-3xl font-bold text-yellow-500 mb-8">Our Mission & Values</h2>
+                  <p className="text-white/80 text-lg leading-relaxed mb-8">
+                    As a model agency UAE dedicated to excellence, we operate on three foundational principles:
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-8">
+                    {[
+                      {
+                        title: 'Integrity First',
+                        description: 'Every interaction, from model recruitment to client negotiations, is conducted with transparency and ethical standards. We maintain strict policies against exploitation, ensure fair compensation, and advocate for professional working conditions across all bookings.'
+                      },
+                      {
+                        title: 'Diversity Celebrated',
+                        description: 'The UAE\'s multicultural environment demands representation that reflects its vibrant population. Our roster intentionally spans ethnicities, body types, ages, and styles, ensuring clients find authentic faces that resonate with diverse audiences.'
+                      },
+                      {
+                        title: 'Career Development',
+                        description: 'We\'re not a booking platform; we\'re career architects. Every model receives personalized guidance, professional development opportunities, and strategic career planning designed to build sustainable, long-term success in the modeling industry.'
+                      }
+                    ].map((value, index) => (
+                      <motion.div
+                        key={index}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-yellow-500/50 transition"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                      >
+                        <h3 className="text-yellow-500 font-bold text-xl mb-4">{value.title}</h3>
+                        <p className="text-white/70 leading-relaxed text-sm">{value.description}</p>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-                <h3 className="text-yellow-500 mb-6 text-3xl sm:text-4xl">
-                  Driven by Excellence
-                </h3>
-                <p className="text-white/80 text-lg sm:text-xl leading-relaxed mb-8">
-                  To provide exceptional event planning and modeling services that exceed expectations, foster creativity, and create unforgettable experiences through innovation, integrity, and unwavering commitment to excellence.
-                </p>
-                <div className="flex flex-wrap justify-center gap-4 text-sm">
-                  {['Innovation', 'Integrity', 'Excellence', 'Creativity'].map((value, index) => (
-                    <div key={index} className="bg-yellow-500/10 border border-yellow-500/30 rounded-full px-6 py-2 text-yellow-500">
-                      {value}
-                    </div>
-                  ))}
+
+                <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent"></div>
+
+                {/* Leadership & Industry Expertise */}
+                <div>
+                  <h2 className="text-3xl font-bold text-yellow-500 mb-8">Leadership & Industry Expertise</h2>
+                  <p className="text-white/80 text-lg leading-relaxed mb-8">
+                    FEModels is guided by a team of industry professionals with combined experience spanning fashion, advertising, entertainment, and talent management:
+                  </p>
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mb-6">
+                    <ul className="space-y-4">
+                      {[
+                        'Casting Directors with 20+ years experience in European and Middle Eastern markets',
+                        'Model Development Coaches specializing in runway, commercial, and editorial preparation',
+                        'Legal Advisors ensuring full UAE labor law compliance and contract protection',
+                        'Business Development Managers maintaining relationships with top-tier brands and agencies'
+                      ].map((item, index) => (
+                        <li key={index} className="flex items-start gap-3 text-white/70">
+                          <span className="text-yellow-500 font-bold mt-1">•</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <p className="text-white/70 text-base leading-relaxed">
+                    Our team's collective expertise ensures that whether you're a Fortune 500 company seeking Dubai models for a regional campaign or an emerging talent looking for representation, you receive world-class service backed by deep industry knowledge.
+                  </p>
                 </div>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent"></div>
+
+                {/* Milestones & Recognition */}
+                <div>
+                  <h2 className="text-3xl font-bold text-yellow-500 mb-8">Milestones & Recognition</h2>
+                  <div className="grid md:grid-cols-2 gap-6 mb-8">
+                    {[
+                      { year: '2009', text: 'Founded in Dubai with initial roster of 50 models' },
+                      { year: '2012', text: 'First UAE agency to implement digital casting platform' },
+                      { year: '2015', text: 'Expanded operations to Abu Dhabi and broader UAE markets' },
+                      { year: '2018', text: 'Launched model development academy' },
+                      { year: '2020', text: 'Pioneered virtual casting solutions during global pandemic' },
+                      { year: '2023', text: 'Reached 500+ models represented; facilitated 2,000+ bookings annually' },
+                      { year: '2024', text: 'Recipient of Middle East Fashion Industry Excellence Award' }
+                    ].map((milestone, index) => (
+                      <motion.div
+                        key={index}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-yellow-500/50 transition"
+                        initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: index * 0.05 }}
+                      >
+                        <p className="text-yellow-500 font-bold text-lg mb-2">{milestone.year}</p>
+                        <p className="text-white/70 text-sm">{milestone.text}</p>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <p className="text-white/70 text-base leading-relaxed bg-white/5 border border-white/10 rounded-2xl p-6">
+                    Our partnerships include collaborations with Dubai Fashion Week, Abu Dhabi Art, luxury hotel groups, international fashion houses, advertising agencies, and television production companies throughout the GCC region.
+                  </p>
+                </div>
+
+                <div className="h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent"></div>
+
+                {/* Why FEModels Stands Apart */}
+                <div>
+                  <h2 className="text-3xl font-bold text-yellow-500 mb-8">Why FEModels Stands Apart Among Modeling Companies in Dubai</h2>
+                  <div className="space-y-6">
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+                      <p className="text-white/80 text-lg leading-relaxed mb-6">
+                        Unlike transactional agencies that simply connect supply with demand, FEModels invests in relationships. We know our models intimately—their strengths, aspirations, and unique qualities. We understand our clients' brand identities, target audiences, and creative visions. This depth of knowledge enables us to make perfect matches that deliver exceptional results.
+                      </p>
+                      <p className="text-white/80 text-lg leading-relaxed">
+                        Our commitment to excellence extends beyond booking coordination. We provide comprehensive support services including portfolio development, legal guidance, financial advising for freelance models, ongoing training, and mental health resources because sustainable careers require holistic support.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           </motion.div>
@@ -518,10 +616,9 @@ export function AboutUs() {
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {[
-                    { Icon: Instagram, href: '#' },
-                    { Icon: Facebook, href: '#' },
-                    { Icon: Linkedin, href: '#' },
-                    { Icon: Twitter, href: '#' },
+                    { Icon: Instagram, href: 'https://www.instagram.com/femodels/' },
+                    { Icon: Facebook, href: 'https://www.facebook.com/FEModelsAgency' },
+                    { Icon: Music2, href: 'https://www.tiktok.com/@femodels_dubai' },
                   ].map(({ Icon, href }, index) => (
                     <a
                       key={index}

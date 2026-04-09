@@ -12,6 +12,8 @@ import { SimpleProfilePage } from './components/SimpleProfilePage';
 import { AdminLogin } from './components/AdminLogin';
 import { AdminDashboard } from './components/AdminDashboard';
 import { AboutUs } from './components/AboutUs';
+import { ContactPage } from './components/ContactPage';
+import { FAQPage } from './components/FAQPage';
 import { Header } from './components/Header';
 
 function AppContent() {
@@ -88,6 +90,20 @@ function AppContent() {
           <div className="min-h-screen bg-black">
             <HeaderWrapper favorites={favorites} />
             <AboutUs />
+          </div>
+        } />
+
+        <Route path="/contact" element={
+          <div className="min-h-screen bg-black">
+            <HeaderWrapper favorites={favorites} />
+            <ContactPage />
+          </div>
+        } />
+
+        <Route path="/faq" element={
+          <div className="min-h-screen bg-black">
+            <HeaderWrapper favorites={favorites} />
+            <FAQPage />
           </div>
         } />
 
