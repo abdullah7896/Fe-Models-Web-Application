@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import * as ReactRouterDom from 'react-router-dom';
 import { BackgroundCarousel } from './components/BackgroundCarousel';
 import { SimpleNavigation } from './components/SimpleNavigation';
 import { NavigationWithDropdowns } from './components/NavigationWithDropdowns';
@@ -15,6 +15,8 @@ import { AboutUs } from './components/AboutUs';
 import { ContactPage } from './components/ContactPage';
 import { FAQPage } from './components/FAQPage';
 import { Header } from './components/Header';
+
+const { BrowserRouter, MemoryRouter, Routes, Route, useLocation } = ReactRouterDom;
 
 function AppContent() {
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -124,11 +126,25 @@ function HeaderWrapper({ favorites }: { favorites: string[] }) {
   return <Header favoritesCount={favorites.length} />;
 }
 
-export default function App() {
+type AppProps = {
+  url?: string;
+};
+
+export default function App({ url = '/' }: AppProps) {
+  const isServer = typeof window === 'undefined';
+
+  if (isServer) {
+    return (
+      <MemoryRouter initialEntries={[url]}>
+        <AppContent />
+      </MemoryRouter>
+    );
+  }
+
   return (
-    <Router>
+    <BrowserRouter>
       <AppContent />
-    </Router>
+    </BrowserRouter>
   );
 }
 
