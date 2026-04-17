@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { motion } from 'motion/react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useSEO } from '../utils/seo';
 
 export function HomePage() {
   const [searchValue, setSearchValue] = useState('');
   const navigate = useNavigate();
+
+  // Set SEO meta tags for home page
+  useSEO({
+    title: 'Model Agency UAE | Dubai Modeling Agency - FEModels',
+    description: 'Leading model agency in Dubai & UAE. Professional casting services, diverse talent roster, 15+ years experience. Connect with top models for your campaign.',
+  });
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && searchValue.trim()) {

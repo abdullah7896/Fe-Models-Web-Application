@@ -3,6 +3,7 @@ import { Mail, Phone, MapPin, Instagram, Facebook, Music2, Clock } from 'lucide-
 import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { useSEO } from '../utils/seo';
 
 export function ContactPage() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,12 @@ export function ContactPage() {
     phone: '',
     subject: '',
     message: '',
+  });
+
+  // Set SEO meta tags for contact page
+  useSEO({
+    title: 'Contact FEModels Dubai - Model Agency UAE Inquiries | Get Started',
+    description: 'Contact FEModels modeling agency in Dubai. Casting inquiries, model applications, career questions. Phone, email, WhatsApp. 24-hour response time.',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

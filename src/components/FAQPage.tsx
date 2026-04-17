@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { ChevronDown } from 'lucide-react';
+import { useSEO } from '../utils/seo';
 
 export function FAQPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  // Set SEO meta tags for FAQ page
+  useSEO({
+    title: 'Model Agency UAE FAQ | FEModels Dubai Models, Casting & Booking Info',
+    description: 'Explore FEModels FAQ for modeling agency in Dubai services, model booking process, casting details, rates, and career opportunities with top modeling companies in Dubai.',
+  });
 
   const faqData = [
     {

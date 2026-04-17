@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Award, Users, Star, Sparkles, Mail, Phone, MapPin, Instagram, Facebook, Music2 } from 'lucide-react';
 
 import { motion } from 'motion/react';
+import { useSEO } from '../utils/seo';
 
 // Import client logos
 import dongfengLogo from '../assets/00db159a556cbdc692cb670efe34943b586de999.png';
@@ -39,7 +40,11 @@ export function AboutUs() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-
+  // Set SEO meta tags for about page
+  useSEO({
+    title: 'About FEModels - Trusted Modeling Companies in Dubai Since 2009',
+    description: 'Discover FEModels\' 15-year journey as a leading model agency UAE. Learn about our values, expertise, and commitment to ethical talent representation in Dubai.',
+  });
 
   // Auto-scroll functionality
   useEffect(() => {

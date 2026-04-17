@@ -9,6 +9,7 @@ import { ImageWithFallback } from './figma/ImageWithFallback';
 import { publicAnonKey, getBaseUrl } from '../utils/supabase/info';
 import { CATEGORY_CONFIG, normalizeCategory } from '../utils/categories';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSEO } from '../utils/seo';
 import {
   Pagination,
   PaginationContent,
@@ -28,6 +29,12 @@ export function CategoryPage({ favorites, toggleFavorite }: CategoryPageProps) {
   const { category: routeCategory } = useParams<{ category: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+
+  // Set SEO meta tags for models portfolio page
+  useSEO({
+    title: 'Dubai Models Portfolio - Browse 500+ Professional Talent | FEModels',
+    description: 'Explore professional Dubai model portfolios. Fashion, commercial, face models for casting. 500+ diverse talent, instant availability, transparent pricing.',
+  });
 
   const routeSubcategory = searchParams.get('subcategory');
   // Use route parameter 'q' for search value
