@@ -6,9 +6,19 @@ import { Button } from './ui/button';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { publicAnonKey, getBaseUrl } from '../utils/supabase/info';
 import { normalizeCategory } from '../utils/categories';
-import { DEMO_TALENTS, type ShowcaseTalent } from '../data/demoTalents';
 
 const FEATURED_COUNT = 8;
+
+interface ShowcaseTalent {
+  id: string;
+  name: string;
+  firstName: string;
+  image: string;
+  location: string;
+  category: string;
+  subcategory: string;
+  profileState?: Record<string, unknown>;
+}
 
 function getFirstName(fullName: string): string {
   if (!fullName?.trim()) return '';
@@ -31,7 +41,6 @@ function modelToShowcase(model: Record<string, unknown>): ShowcaseTalent | null 
     location: (model.location as string) || 'Dubai, UAE',
     category: category || 'Models',
     subcategory: (model.subcategory as string) || '',
-    isDemo: false,
     profileState: {
       id: model.id,
       name: model.name,
@@ -57,8 +66,7 @@ function modelToShowcase(model: Record<string, unknown>): ShowcaseTalent | null 
 }
 
 export function FeaturedTalentsSection() {
-  const [talents, setTalents] = useState<ShowcaseTalent[]>(DEMO_TALENTS);
-  const [usingLiveData, setUsingLiveData] = useState(false);
+  const [talents, setTalents] = useState<ShowcaseTalent[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,12 +93,11 @@ export function FeaturedTalentsSection() {
           .map((m: Record<string, unknown>) => modelToShowcase(m))
           .filter(Boolean) as ShowcaseTalent[];
 
-        if (cancelled || live.length < 4) return;
+        if (cancelled) return;
 
         setTalents(live.slice(0, FEATURED_COUNT));
-        setUsingLiveData(true);
       } catch {
-        // Keep demo talents on failure
+        if (!cancelled) setTalents([]);
       }
     }
 
@@ -123,11 +130,6 @@ export function FeaturedTalentsSection() {
           <p className="text-white/60 max-w-3xl mx-auto text-sm sm:text-base lg:text-lg leading-relaxed">
             A curated selection from our roster of professional models, actors, and creatives ready for your next campaign in Dubai and across the UAE.
           </p>
-          {usingLiveData && (
-            <p className="text-yellow-500/70 text-xs mt-3 tracking-wide uppercase">
-              Live roster
-            </p>
-          )}
         </motion.div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
@@ -140,12 +142,8 @@ export function FeaturedTalentsSection() {
               transition={{ duration: 0.45, delay: index * 0.06 }}
             >
               <Link
-                to={
-                  talent.isDemo
-                    ? `/category/${encodeURIComponent(talent.category)}`
-                    : `/profile/${talent.id}`
-                }
-                state={talent.isDemo ? undefined : { talent: talent.profileState }}
+                to={`/profile/${talent.id}`}
+                state={{ talent: talent.profileState }}
                 className="group block"
               >
                 <div className="relative aspect-[3/4] rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 group-hover:border-yellow-500/50 transition-all duration-300 bg-white/5">
