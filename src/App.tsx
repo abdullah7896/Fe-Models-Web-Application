@@ -4,6 +4,7 @@ import { BackgroundCarousel } from './components/BackgroundCarousel';
 import { SimpleNavigation } from './components/SimpleNavigation';
 import { NavigationWithDropdowns } from './components/NavigationWithDropdowns';
 import { HomePage } from './components/HomePage';
+import { HomePageSections } from './components/HomePageSections';
 import { CategoryPage } from './components/CategoryPage';
 import { ApplyNowPage } from './components/ApplyNowPage';
 import { FavoritesPage } from './components/FavoritesPage';
@@ -45,11 +46,12 @@ function AppContent() {
       <Routes>
         <Route path="/" element={
           <BackgroundCarousel>
-            <div className="min-h-screen">
+            <div className="min-h-screen flex flex-col pb-16 sm:pb-20">
               <HeaderWrapper favorites={favorites} />
               <NavigationWithDropdowns />
               <HomePage />
             </div>
+            <HomePageSections />
           </BackgroundCarousel>
         } />
 

@@ -7,6 +7,7 @@ interface BackgroundCarouselProps {
 
 export function BackgroundCarousel({ children }: BackgroundCarouselProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showPagination, setShowPagination] = useState(true);
 
   const backgroundImages = [
     'https://images.squarespace-cdn.com/content/v1/641d83d6a57ac33e0437be66/bb8182c8-f0d2-4af4-91dd-5db186814d74/image-asset.jpeg?format=2500w',
@@ -24,14 +25,23 @@ export function BackgroundCarousel({ children }: BackgroundCarouselProps) {
     return () => clearInterval(interval);
   }, [backgroundImages.length]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowPagination(window.scrollY < window.innerHeight * 0.75);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleDotClick = (index: number) => {
     setCurrentSlide(index);
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      {/* Background Images */}
-      <div className="absolute inset-0">
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Background Images — fixed to viewport so sections scroll over hero imagery */}
+      <div className="fixed inset-0 -z-10">
         {backgroundImages.map((image, index) => (
           <div
             key={index}
@@ -54,8 +64,10 @@ export function BackgroundCarousel({ children }: BackgroundCarouselProps) {
         {children}
       </div>
 
-      {/* Pagination Dots */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
+      {/* Pagination Dots — visible only while hero is in view */}
+      <div
+        className={`fixed bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 transition-opacity duration-300 ${showPagination ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      >
         <div className="flex items-center space-x-3 px-4 py-2 bg-black/20 backdrop-blur-sm rounded-full">
           {backgroundImages.map((_, index) => (
             <button

@@ -4516,3 +4516,100 @@ html {
     transform: translate3d(var(--tw-enter-translate-x, 0), var(--tw-enter-translate-y, 0), 0) scale3d(var(--tw-enter-scale, 1), var(--tw-enter-scale, 1), var(--tw-enter-scale, 1)) rotate(var(--tw-enter-rotate, 0));
   }
 }
+
+/* ─── Homepage Client Logos Marquee ─────────────────────────────── */
+.client-logo-slot {
+  flex-shrink: 0;
+  width: 7.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.client-logo-frame {
+  width: 7.5rem;
+  height: 3.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.client-logo-frame:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.client-logo-img {
+  width: 5rem;
+  height: 2.25rem;
+  max-width: 5rem;
+  max-height: 2.25rem;
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (min-width: 640px) {
+  .client-logo-slot {
+    width: 8.5rem;
+    margin-left: 0.75rem;
+    margin-right: 0.75rem;
+  }
+
+  .client-logo-frame {
+    width: 8.5rem;
+    height: 4rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  .client-logo-img {
+    width: 5.75rem;
+    height: 2.5rem;
+    max-width: 5.75rem;
+    max-height: 2.5rem;
+  }
+}
+
+.homepage-marquee {
+  overflow: hidden;
+  width: 100%;
+}
+
+.homepage-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: homepage-marquee-scroll 30s linear infinite;
+}
+
+.homepage-marquee:hover .homepage-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes homepage-marquee-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.333%);
+  }
+}
+
+@media (max-width: 640px) {
+  .homepage-marquee-track {
+    animation-duration: 22s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+  }
+}
+
